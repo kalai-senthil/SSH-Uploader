@@ -1,22 +1,51 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use std::fs;
+use std::path::Path;
 use std::process::Command;
-
 use tauri_plugin_sql::{Migration, MigrationKind};
+
+fn is_directory(path: &str) -> bool {
+    let path = Path::new(path);
+
+    match fs::metadata(path) {
+        Ok(metadata) => metadata.is_dir(),
+        Err(e) => false,
+    }
+}
+
+fn get_args(is_directory: bool) -> String {
+    let args = String::from("-r");
+    if is_directory {
+        return args;
+    }
+    "".to_string()
+}
+
 #[tauri::command]
 async fn upload_file(
     local_file_path: String,
+    password: String,
     remote_host: String,
     remote_user: String,
     remote_path: String,
+    remote_file_name: String,
     port: u16,
 ) -> Result<String, String> {
-    let destination = format!("{}@{}:{}", remote_user, remote_host, remote_path);
+    let destination = format!(
+        "{}@{}:{}/{}",
+        remote_user, remote_host, remote_path, remote_file_name
+    );
 
-    // Build the `scp` command
-    let command = format!("scp -P {} {} {}", port, local_file_path, destination);
+    let command = format!(
+        "sshpass -p {} scp -o StrictHostKeyChecking=no -P {} {} {} {}",
+        password,
+        port,
+        get_args(is_directory(&local_file_path)),
+        local_file_path,
+        destination
+    );
 
-    // Execute the command
     let output = Command::new("sh")
         .args(&["-c", &command])
         .output()
@@ -52,5 +81,5 @@ fn main() {
         )
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-    // sshupload_lib::run()
+    sshupload_lib::run()
 }

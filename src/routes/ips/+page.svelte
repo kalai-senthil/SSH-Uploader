@@ -12,6 +12,7 @@
   <section class="flex my-4 justify-between items-center">
     <PageTitle title="IP Address" />
     <Dialog.Root
+    controlledOpen
       onOpenChange={(e) => (addIPDialogOpen = e)}
       open={addIPDialogOpen}
     >

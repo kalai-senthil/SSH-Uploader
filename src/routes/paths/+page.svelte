@@ -16,6 +16,7 @@
   <section class="flex my-4 justify-between items-center">
     <PageTitle title="Paths" />
     <Dialog.Root
+      controlledOpen
       onOpenChange={(e) => (addPathDialogOpen = e)}
       open={addPathDialogOpen}
     >
@@ -27,7 +28,7 @@
         <Dialog.Header>
           <Dialog.Title>Add New Path</Dialog.Title>
 
-          <AddPath on:closeDialog={(e) => (addPathDialogOpen = false)} />
+          <AddPath on:closeDialog={() => (addPathDialogOpen = false)} />
         </Dialog.Header>
       </Dialog.Content>
     </Dialog.Root>

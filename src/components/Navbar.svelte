@@ -27,6 +27,9 @@
       name: "Paths",
     },
   ];
+  import { page } from "$app/stores";
+  import { fade, fly } from "svelte/transition";
+  import { cn } from "$lib/utils";
 </script>
 
 <Sidebar.Root collapsible="icon">
@@ -43,8 +46,15 @@
       <Sidebar.GroupContent>
         <Sidebar.Menu>
           {#each items as menuItem (menuItem.name)}
-            <Sidebar.MenuItem>
-              <Sidebar.MenuButton>
+            <Sidebar.MenuItem class="text-xl">
+              <Sidebar.MenuButton
+                class={cn(
+                  "transition-colors",
+                  $page.url.pathname === menuItem.url
+                    ? "bg-violet-500 font-semibold"
+                    : "",
+                )}
+              >
                 {#snippet child({ props })}
                   <a href={menuItem.url} {...props}>
                     <menuItem.icon />

@@ -14,6 +14,7 @@
   <section class="flex my-4 justify-between items-center">
     <PageTitle title="Commands" />
     <Dialog.Root
+    controlledOpen
       onOpenChange={(e) => (addCommandDialogOpen = e)}
       open={addCommandDialogOpen}
     >

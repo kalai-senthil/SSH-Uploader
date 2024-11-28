@@ -10,6 +10,8 @@
   import Checkbox from "$lib/components/ui/checkbox/checkbox.svelte";
   import { Button } from "$lib/components/ui/button";
   import SelectWithSearch from "./SelectWithSearch.svelte";
+  import { invoke } from "@tauri-apps/api/core";
+  import { path } from "@tauri-apps/api";
   let uploadDirectory = $state(false);
   async function selectFileDialog() {
     const file = await open({
@@ -36,6 +38,8 @@
     fileName: "",
     isFileNameSameAsUploadOne: false,
     filePath: undefined as null | string | undefined,
+    remoteFilePath:"",
+    user: "",
   });
   let fileSelected = $derived(uploadData.filePath !== undefined);
 </script>
@@ -71,6 +75,7 @@
     </div>
     <Label>User</Label>
     <SelectWithSearch
+      selectedValue={uploadData.user}
       searchLabel="Search User"
       data={[
         { label: "sas", value: "sas" },
@@ -139,16 +144,22 @@
         <Input placeholder="Give custom path" />
       {/if}
     </Select.Root>
-    <Label>File Name</Label>
+    <Label>Name</Label>
     <div class="flex">
       <Input
         disabled={uploadData.isFileNameSameAsUploadOne}
-        placeholder="File Name"
+        placeholder="Name"
+        bind:value={uploadData.fileName}
       />
       <Button
-        onclick={() =>
-          (uploadData.isFileNameSameAsUploadOne =
-            !uploadData.isFileNameSameAsUploadOne)}
+        onclick={async () => {
+          uploadData.isFileNameSameAsUploadOne =
+            !uploadData.isFileNameSameAsUploadOne;
+          if (uploadData.isFileNameSameAsUploadOne) {
+            uploadData.fileName = await path.basename(uploadData.filePath!);
+            
+          }
+        }}
         variant="ghost"
       >
         <Checkbox
@@ -158,6 +169,20 @@
         Same as file name
       </Button>
     </div>
-    <Button class="w-full" variant="secondary"><UploadIcon /> Upload</Button>
+    <Button
+      onclick={() => {
+        invoke("upload_file", {
+          localFilePath: uploadData.filePath,
+          password: "DZSi53526e",
+          remoteUser: uploadData.user,
+          remotePath: pathsToUpload+"",
+          port: 22,
+          remoteHost: ipstoUpload + "",
+          remoteFileName: uploadData.fileName,
+        });
+      }}
+      class="w-full"
+      variant="secondary"><UploadIcon /> Upload</Button
+    >
   </section>
 </section>

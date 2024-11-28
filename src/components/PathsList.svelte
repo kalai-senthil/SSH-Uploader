@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { paths } from "$lib/store";
-  import type { PATH } from "$lib/typings";
+  import { paths, resetUtilsEditing, utilsEditing } from "$lib/store";
+  import { Utils, type PATH } from "$lib/typings";
   import type { ColumnDef } from "@tanstack/table-core";
   import Copy from "lucide-svelte/icons/copy";
   import Delete from "lucide-svelte/icons/trash-2";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import IpDataTable from "./DataTable.svelte";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
-  import { renderSnippet } from "$lib/components/ui/data-table";
+  import { renderComponent, renderSnippet } from "$lib/components/ui/data-table";
   import Button from "$lib/components/ui/button/button.svelte";
   import DataTableCheckbox from "$lib/components/ui/data-table/data-table-checkbox.svelte";
   export const columns: ColumnDef<PATH>[] = [
@@ -58,40 +58,32 @@
     {
       header: "Actions",
       cell({ row }) {
-        return renderSnippet(deletePathSnippet, row.original);
+        return renderComponent(Actions, {
+          data: row.original,
+          performDelete: () => {
+            deletePath(row.original.ID);
+          },
+          performEdit: () => {
+            utilsEditing.update((val) => ({
+              ...val,
+              type: Utils.PATH,
+              data: row.original,
+              openEditDialog: true,
+            }));
+          },
+        });
       },
     },
   ];
-  import { deletePath } from "$lib/db";
+  import { deletePath, editPath } from "$lib/db";
+    import Actions from "./Actions.svelte";
+    import EditActions from "./EditActions.svelte";
+    import Label from "$lib/components/ui/label/label.svelte";
+    import Input from "$lib/components/ui/input/input.svelte";
 </script>
 
 {#snippet listNo(no: number)}
   <span>{no}</span>
-{/snippet}
-{#snippet deletePathSnippet(ip: PATH)}
-  <AlertDialog.Root>
-    <AlertDialog.Trigger
-      ><Button variant="destructive" size="icon">
-        <Delete />
-      </Button></AlertDialog.Trigger
-    >
-    <AlertDialog.Content>
-      <AlertDialog.Header>
-        <AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-        <AlertDialog.Description>
-          This action cannot be undone.
-        </AlertDialog.Description>
-      </AlertDialog.Header>
-      <AlertDialog.Footer>
-        <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-        <AlertDialog.Action
-          onclick={() => {
-            deletePath(ip.ID);
-          }}>Continue</AlertDialog.Action
-        >
-      </AlertDialog.Footer>
-    </AlertDialog.Content>
-  </AlertDialog.Root>
 {/snippet}
 {#snippet commandCopy(command: string)}
   <Button
@@ -101,5 +93,23 @@
     variant="link">{command} <Copy /></Button
   >
 {/snippet}
-
+{#snippet callout()}
+  <Button class="w-full">Update Path</Button>
+{/snippet}
+<EditActions
+  description="Whenever you needed you can edit again!!"
+  perform={() => {
+    editPath($utilsEditing.data);
+    tick().then(resetUtilsEditing)
+  }}
+  data={$utilsEditing.data}
+  {callout}
+>
+  {#if $utilsEditing.data}
+    <Label>Name</Label>
+    <Input placeholder="Name" bind:value={$utilsEditing.data.NAME} />
+    <Label>Path</Label>
+    <Input placeholder="Path" bind:value={$utilsEditing.data.PATH} />
+  {/if}
+</EditActions>
 <IpDataTable data={$paths} {columns} />

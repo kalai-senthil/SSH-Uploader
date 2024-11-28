@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { initIPS, ips } from "$lib/store";
-  import type { IP } from "$lib/typings";
+  import { initIPS, ips, resetUtilsEditing, utilsEditing } from "$lib/store";
+  import { Utils, type IP } from "$lib/typings";
   import type { ColumnDef } from "@tanstack/table-core";
   import Copy from "lucide-svelte/icons/copy";
   import Delete from "lucide-svelte/icons/trash-2";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import IpDataTable from "./DataTable.svelte";
   import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
   import {
@@ -61,40 +61,33 @@
     {
       header: "Actions",
       cell({ row }) {
-        return renderSnippet(deleteIPSnippet, row.original);
+        return renderComponent(Actions, {
+          data: row.original,
+          performDelete: () => {
+            deleteIP(row.original.ID);
+          },
+          performEdit: () => {
+            utilsEditing.update((val) => ({
+              ...val,
+              type: Utils.IP,
+              data: row.original,
+              openEditDialog: true,
+            }));
+          },
+        });
       },
     },
   ];
-  import { deleteIP } from "$lib/db";
+  import { deleteIP, editIP } from "$lib/db";
+
+  import Actions from "./Actions.svelte";
+  import EditActions from "./EditActions.svelte";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
 </script>
 
 {#snippet listNo(no: number)}
   <span>{no}</span>
-{/snippet}
-{#snippet deleteIPSnippet(ip: IP)}
-  <AlertDialog.Root>
-    <AlertDialog.Trigger
-      ><Button variant="destructive" size="icon">
-        <Delete />
-      </Button></AlertDialog.Trigger
-    >
-    <AlertDialog.Content>
-      <AlertDialog.Header>
-        <AlertDialog.Title>Are you absolutely sure?</AlertDialog.Title>
-        <AlertDialog.Description>
-          This action cannot be undone.
-        </AlertDialog.Description>
-      </AlertDialog.Header>
-      <AlertDialog.Footer>
-        <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-        <AlertDialog.Action
-          onclick={() => {
-            deleteIP(ip.ID);
-          }}>Continue</AlertDialog.Action
-        >
-      </AlertDialog.Footer>
-    </AlertDialog.Content>
-  </AlertDialog.Root>
 {/snippet}
 {#snippet ipAddressCopy(ip: string)}
   <Button
@@ -105,4 +98,24 @@
   >
 {/snippet}
 
+{#snippet callout()}
+  <Button class="w-full">Update IP</Button>
+{/snippet}
+
+<EditActions
+  description="Whenever you needed you can edit again!!"
+  perform={() => {
+    editIP($utilsEditing.data);
+    tick().then(resetUtilsEditing)
+  }}
+  data={$utilsEditing.data}
+  {callout}
+>
+  {#if $utilsEditing.data}
+    <Label>Name</Label>
+    <Input placeholder="Name" bind:value={$utilsEditing.data.NAME} />
+    <Label>IP Address</Label>
+    <Input placeholder="IP" bind:value={$utilsEditing.data.IP} />
+  {/if}
+</EditActions>
 <IpDataTable data={$ips} {columns} />

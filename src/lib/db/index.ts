@@ -4,7 +4,7 @@ let db: Database | null = null;
 
 import type { COMMAND, IP, PATH } from "$lib/typings";
 import { v4 as uuid } from "uuid";
-import { commands, ips, paths } from "$lib/store";
+import { commands, ips, paths, utilsEditing } from "$lib/store";
 
 async function getIPS() {
     const db = await getDB()
@@ -54,6 +54,48 @@ async function addIP(name: string, ip: string) {
         return { success: true, data: { id: ipID, name, ip } };
     } catch (error) {
         return { success: false, data: null }
+    }
+}
+async function editIP(ip: IP) {
+    try {
+        const db = await getDB()
+        await db.execute('UPDATE IPS SET NAME = $1,IP = $2 WHERE ID = $3;', [ip.NAME, ip.IP, ip.ID]);
+        ips.update(ips => {
+            const idx = ips.findIndex(_ip => _ip.ID === ip.ID);
+            ips[idx] = ip;
+            return [...ips];
+        })
+        return { success: true };
+    } catch (error) {
+        return { success: false }
+    }
+}
+async function editCommand(command: COMMAND) {
+    try {
+        const db = await getDB()
+        await db.execute('UPDATE COMMANDS SET NAME = $1,COMMAND = $2 WHERE ID = $3;', [command.NAME, command.COMMAND, command.ID]);
+        commands.update(commands => {
+            const idx = commands.findIndex(_ip => _ip.ID === command.ID);
+            commands[idx] = command;
+            return [...commands];
+        })
+        return { success: true };
+    } catch (error) {
+        return { success: false }
+    }
+}
+async function editPath(path: PATH) {
+    try {
+        const db = await getDB()
+        await db.execute('UPDATE PATHS SET NAME = $1,PATH = $2 WHERE ID = $3;', [path.NAME, path.PATH, path.ID]);
+        paths.update(paths => {
+            const idx = paths.findIndex(_ip => _ip.ID === path.ID);
+            paths[idx] = path;
+            return [...paths];
+        })
+        return { success: true };
+    } catch (error) {
+        return { success: false }
     }
 }
 async function addCommand(name: string, command: string) {
@@ -124,4 +166,4 @@ async function getDB() {
     return db;
 }
 export { getDB }
-export { getIPS, addIP, deleteIP, getCommands, addCommand, deleteCommand, getPaths, addPath, deletePath }
+export { getIPS, addIP, deleteIP,editCommand,editPath, getCommands, addCommand, deleteCommand, getPaths, addPath, deletePath,editIP }

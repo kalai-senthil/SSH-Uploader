@@ -1,13 +1,18 @@
 import { getCommands, getIPS, getPaths } from "$lib/db";
-import type { COMMAND, IP, PATH } from "$lib/typings";
+import type { COMMAND, IP, PATH, UtilsEditing } from "$lib/typings";
 import { writable } from "svelte/store";
 
 
 export const ips = writable<IP[]>([])
 export const commands = writable<COMMAND[]>([])
 export const paths = writable<PATH[]>([])
+export const utilsEditing = writable<UtilsEditing>({ openEditDialog: false })
 
 
+
+export function resetUtilsEditing() {
+    utilsEditing.set({openEditDialog:false})
+}
 
 export async function initIPS() {
     const ipsList = await getIPS();
@@ -20,6 +25,6 @@ export async function initCommands() {
 }
 
 export async function initPaths() {
-    const _commands = await getPaths();
-    paths.set(_commands);
+    const _paths = await getPaths();
+    paths.set(_paths);
 }

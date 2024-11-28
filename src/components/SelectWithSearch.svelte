@@ -13,15 +13,17 @@
   type Props = {
     data: Data[];
     searchLabel?: string;
+    selectedValue:any
   };
-  let { data, searchLabel = "Search" }: Props = $props();
+  let { data, searchLabel = "Search",selectedValue = $bindable()}: Props = $props();
 
   let open = $state(false);
   let value = $state("");
   let triggerRef = $state<HTMLButtonElement>(null!);
 
-  const selectedValue = $derived(data.find((f) => f.value === value)?.label);
-
+$effect(()=>{
+  selectedValue = data.find((f) => f.value === value)?.label
+})
   // We want to refocus the trigger button when the user selects
   // an item from the list so users can continue navigating the
   // rest of the form with the keyboard.
@@ -52,7 +54,7 @@
     <Command.Root>
       <Command.Input placeholder={searchLabel} />
       <Command.List>
-        <Command.Empty>No framework found.</Command.Empty>
+        <Command.Empty>Nothins found.</Command.Empty>
         <Command.Group>
           {#each data as row}
             <Command.Item

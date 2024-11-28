@@ -1,4 +1,25 @@
 
+
+export enum Utils {
+    IP = "IP",
+    COMMAND="Command",
+    PATH = "Path"
+}
+export type UtilsEditing = {
+    data?:any,
+    type?:Utils,
+    openEditDialog:boolean
+}
+
+export interface  ActionsTriggerProps<T> {
+    perform: any;
+    data: T;
+    title?:String;
+    description?:String;
+}
+export interface ActionsTriggerPropsWithCallOut<T> extends ActionsTriggerProps<T>{
+    callout?:any
+}
 export type NavLink = {
     url: string;
     icon: any;
