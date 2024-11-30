@@ -1,18 +1,20 @@
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-  import { initCommands, initIPS, initPaths } from "$lib/store";
-  import "../app.css";
+  import { initCommands, initFlows, initIPS, initPasswords, initPaths } from "$lib/store";
   import Navbar from "../components/Navbar.svelte";
   import "../css/main.css";
+  import '@xyflow/svelte/dist/style.css';
   initCommands();
   initIPS();
   initPaths();
+  initPasswords();
+  initFlows();
 </script>
 
 <Sidebar.Provider>
   <Navbar />
   <main class="w-full">
-    <Sidebar.Trigger />
+    <Sidebar.Trigger class="fixed z-20" />
     <slot />
   </main>
 </Sidebar.Provider>

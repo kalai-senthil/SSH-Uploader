@@ -1,62 +1,48 @@
 <script lang="ts">
-  import * as Form from "$lib/components/ui/form/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { addIP } from "$lib/db";
-  import { addIPFormSchema, type AddIPFormSchema } from "$lib/schema";
   import { createEventDispatcher } from "svelte";
 
-  import {
-    type SuperValidated,
-    type Infer,
-    superForm,
-  } from "sveltekit-superforms";
-  import { zodClient } from "sveltekit-superforms/adapters";
+  import SelectWithSearch from "./SelectWithSearch.svelte";
+  import { passwords } from "$lib/store";
+  import Label from "$lib/components/ui/label/label.svelte";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import { Description } from "$lib/components/ui/sheet";
+    import SelectPasswords from "./SelectPasswords.svelte";
 
-  const form = superForm(
-    {},
-    {
-      validators: zodClient(addIPFormSchema),
-    },
-  );
-
-  const { form: formData, enhance } = form;
+  let formData = $state({ name: "", password: "", ip: "" });
   const dispatcher = createEventDispatcher();
   function closeDialog() {
     dispatcher("closeDialog");
   }
+  let passwordsKeys = Object.keys($passwords);
 </script>
 
 <form
   method="POST"
-  on:submit={(e) => {
-    e.preventDefault();
-    addIP($formData.name, $formData.ip);
+ 
+>
+  <Label>Name</Label>
+  <Input placeholder="Personal PC" bind:value={formData.name} />
+  <Description>Name associated with IP</Description>
+  <Label>IP</Label>
+  <Input placeholder="127.0.0.1" bind:value={formData.ip} />
+  <Description>IP Address xxx.xxx.xx.xx</Description>
+  <Label>Password</Label>
+  <SelectPasswords bind:value={formData.password} />
+  <!-- <SelectWithSearch
+    type="single"
+    bind:selectedValue={formData.password}
+    data={passwordsKeys.map((_pass) => {
+      const pass = $passwords[_pass];
+      return { value: pass.ID, label: `${pass.NAME} - ${pass.PASSWORD}` };
+    })}
+  /> -->
+  <Description>Zax234!@#</Description>
+  <Button 
+  onclick={(e) => {
+    addIP(formData.name, formData.ip,formData.password);
     closeDialog();
   }}
->
-  <Form.Field {form} name="name">
-    <Form.Control>
-      {#snippet children({ props })}
-        <Form.Label>Name</Form.Label>
-        <Input
-          {...props}
-          placeholder="Personal PC"
-          bind:value={$formData.name}
-        />
-      {/snippet}
-    </Form.Control>
-    <Form.Description>Name associated with IP</Form.Description>
-    <Form.FieldErrors />
-  </Form.Field>
-  <Form.Field {form} name="ip">
-    <Form.Control>
-      {#snippet children({ props })}
-        <Form.Label>IP</Form.Label>
-        <Input {...props} placeholder="127.0.0.1" bind:value={$formData.ip} />
-      {/snippet}
-    </Form.Control>
-    <Form.Description>IP Address xxx.xxx.xx.xx</Form.Description>
-    <Form.FieldErrors />
-  </Form.Field>
-  <Form.Button class="w-full">Save</Form.Button>
+  class="w-full">Save</Button>
 </form>

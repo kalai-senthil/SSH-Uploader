@@ -9,21 +9,27 @@
   type Data = {
     value: string;
     label: string;
+    description?: string;
+    className?: string;
   };
   type Props = {
     data: Data[];
     searchLabel?: string;
-    selectedValue:any
+    selectedValue: any;
+    disabled?: any;
+    type: "single" | "multiple";
   };
-  let { data, searchLabel = "Search",selectedValue = $bindable()}: Props = $props();
+  let {
+    data,
+    searchLabel = "Search",
+    selectedValue = $bindable(),
+    disabled = $bindable(),
+    type = "single",
+  }: Props = $props();
 
   let open = $state(false);
-  let value = $state("");
   let triggerRef = $state<HTMLButtonElement>(null!);
-
-$effect(()=>{
-  selectedValue = data.find((f) => f.value === value)?.label
-})
+  let value = $state();
   // We want to refocus the trigger button when the user selects
   // an item from the list so users can continue navigating the
   // rest of the form with the keyboard.
@@ -33,19 +39,27 @@ $effect(()=>{
       triggerRef.focus();
     });
   }
+  $effect(() => {
+    if (type === "multiple") return;
+    if (selectedValue !== value && selectedValue === "") {
+      value = "";
+    }
+  });
 </script>
 
 <Popover.Root bind:open>
-  <Popover.Trigger bind:ref={triggerRef}>
+  <Popover.Trigger {disabled} class="w-full" bind:ref={triggerRef}>
     {#snippet child({ props })}
       <Button
         variant="outline"
-        class="justify-between"
         {...props}
+        class="justify-between w-full"
         role="combobox"
         aria-expanded={open}
       >
-        {selectedValue || searchLabel}
+        <span>
+          {type === "single" ? value || searchLabel : searchLabel}
+        </span>
         <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
       </Button>
     {/snippet}
@@ -54,23 +68,42 @@ $effect(()=>{
     <Command.Root>
       <Command.Input placeholder={searchLabel} />
       <Command.List>
-        <Command.Empty>Nothins found.</Command.Empty>
+        <Command.Empty>Nothing found.</Command.Empty>
         <Command.Group>
           {#each data as row}
             <Command.Item
               value={row.value}
               onSelect={() => {
-                value = row.value;
+                const _value = row.value;
+                if (type === "multiple") {
+                  if (selectedValue.includes(_value)) {
+                    selectedValue.splice(selectedValue.indexOf(_value), 1);
+                  } else {
+                    selectedValue.push(_value);
+                  }
+                  selectedValue = [...selectedValue];
+                } else {
+                  if (selectedValue === _value) {
+                    value = "";
+                    selectedValue = "";
+                  } else {
+                    value = row.label;
+                    selectedValue = _value;
+                  }
+                }
                 closeAndFocusTrigger();
               }}
             >
               <Check
                 class={cn(
                   "mr-2 size-4",
-                  value !== row.value && "text-transparent",
+                  !selectedValue.includes(row.value) && "text-transparent"
                 )}
               />
               {row.label}
+              <span class="font-black">
+                {row.description ? `- ${row.description}` : ""}</span
+              >
             </Command.Item>
           {/each}
         </Command.Group>

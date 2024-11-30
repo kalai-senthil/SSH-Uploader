@@ -29,6 +29,6 @@
 	class={cn("h-7 w-7", className)}
 	{...restProps}
 >
-	<PanelLeft />
+	<PanelLeft class="size-20" />
 	<span class="sr-only">Toggle Sidebar</span>
 </Button>

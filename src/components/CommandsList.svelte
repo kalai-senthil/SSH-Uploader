@@ -76,7 +76,10 @@
     import EditActions from "./EditActions.svelte";
     import Input from "$lib/components/ui/input/input.svelte";
     import Label from "$lib/components/ui/label/label.svelte";
+    let commandsData = $derived(Object.values($commands) )
+
 </script>
+
 
 {#snippet listNo(no: number)}
   <span>{no}</span>
@@ -110,4 +113,4 @@
     <Input placeholder="Command" bind:value={$utilsEditing.data.COMMAND} />
   {/if}
 </EditActions>
-<IpDataTable data={$commands} {columns} />
+<IpDataTable data={commandsData} {columns} />

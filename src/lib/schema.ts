@@ -3,6 +3,7 @@ import { z } from "zod";
 export const addIPFormSchema = z.object({
     name: z.string().min(2).max(50),
     ip: z.string().min(2).max(50),
+    password: z.string().min(2).max(500),
 });
 
 export type AddIPFormSchema = typeof addIPFormSchema;

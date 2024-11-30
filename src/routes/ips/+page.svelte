@@ -10,7 +10,7 @@
 
 <section class="p-4">
   <section class="flex my-4 justify-between items-center">
-    <PageTitle title="IP Address" />
+    <PageTitle title="Machines" />
     <Dialog.Root
     controlledOpen
       onOpenChange={(e) => (addIPDialogOpen = e)}

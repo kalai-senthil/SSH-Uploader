@@ -80,6 +80,7 @@
     import EditActions from "./EditActions.svelte";
     import Label from "$lib/components/ui/label/label.svelte";
     import Input from "$lib/components/ui/input/input.svelte";
+    let pathsData = $derived(Object.values($paths))
 </script>
 
 {#snippet listNo(no: number)}
@@ -112,4 +113,4 @@
     <Input placeholder="Path" bind:value={$utilsEditing.data.PATH} />
   {/if}
 </EditActions>
-<IpDataTable data={$paths} {columns} />
+<IpDataTable data={pathsData} {columns} />

@@ -7,6 +7,6 @@
 </script>
 
 <section>
+    <Button onclick={performEdit} variant="secondary" size="icon"><Edit /> </Button>
     <DeleteActions {...props} perform={performDelete} />
-    <Button onclick={performEdit} variant="secondary"><Edit /> </Button>
 </section>

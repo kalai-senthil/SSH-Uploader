@@ -59,6 +59,15 @@
       },
     },
     {
+      accessorKey: "PASSWORD",
+      header: "Password",
+      enableColumnFilter: true,
+      enableGlobalFilter: true,
+      cell({ row }) {
+        return renderSnippet(ipAddressCopy, row.original.PASSWORD);
+      },
+    },
+    {
       header: "Actions",
       cell({ row }) {
         return renderComponent(Actions, {
@@ -84,6 +93,8 @@
   import EditActions from "./EditActions.svelte";
   import Input from "$lib/components/ui/input/input.svelte";
   import Label from "$lib/components/ui/label/label.svelte";
+    import SelectPasswords from "./SelectPasswords.svelte";
+  let ipsData = $derived(Object.values($ips));
 </script>
 
 {#snippet listNo(no: number)}
@@ -106,7 +117,7 @@
   description="Whenever you needed you can edit again!!"
   perform={() => {
     editIP($utilsEditing.data);
-    tick().then(resetUtilsEditing)
+    tick().then(resetUtilsEditing);
   }}
   data={$utilsEditing.data}
   {callout}
@@ -116,6 +127,8 @@
     <Input placeholder="Name" bind:value={$utilsEditing.data.NAME} />
     <Label>IP Address</Label>
     <Input placeholder="IP" bind:value={$utilsEditing.data.IP} />
+    <Label>Password</Label>
+    <SelectPasswords searchLabel="Select Password"   bind:value={$utilsEditing.data.PASSWORD} />
   {/if}
 </EditActions>
-<IpDataTable data={$ips} {columns} />
+<IpDataTable data={ipsData} {columns} />
