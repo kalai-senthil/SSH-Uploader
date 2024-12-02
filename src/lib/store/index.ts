@@ -5,6 +5,7 @@ import {
   getIPS,
   getPasswords,
   getPaths,
+  getUsers,
 } from "$lib/db";
 import { v4 as uuid } from "uuid";
 import {
@@ -24,12 +25,14 @@ import {
   type Passwords,
   type PATH,
   type Paths,
+  type Users,
   type UtilsEditing,
 } from "$lib/typings";
 import { Position, type Edge, type Node } from "@xyflow/svelte";
 import { writable } from "svelte/store";
 
 export const ips = writable<IPs>({});
+export const users = writable<Users>({});
 export const commands = writable<Commands>({});
 export const paths = writable<Paths>({});
 export const passwords = writable<Passwords>({});
@@ -44,15 +47,53 @@ export const nodesSelected = writable<string | undefined>(undefined);
 export function updateContextMenu(params: {}) {
   contextMenuDetails.update((val) => ({ ...val, ...params }));
 }
-export const flowEditing = writable<FLOW & {type:FlowType}>({ID:"",NAME:"",type:FlowType.DEFAULT});
-export const nodes = writable<Node[]>([]);
+export type Result={
+  command:string,
+  result:string
+}
+const defaultFlowRunningParams = {
+  runningNode: "",
+  running: false,
+  timeout: 1,
+  results:[] as Result[]
+};
+export const flowRunning = writable(defaultFlowRunningParams);
+export const flowEditing = writable<FLOW & { type: FlowType }>({
+  ID: "",
+  NAME: "",
+  type: FlowType.DEFAULT,
+});
+
+export function updateRunningFlow(data: any, clear = false) {
+  if (clear) {
+    flowRunning.set(defaultFlowRunningParams);
+    return;
+  }
+  flowRunning.update((val) => ({ ...val, ...data }));
+}
+const initialNodes = [
+  {
+    id: "start",
+    type: "start",
+    data: { label: "Start" },
+    position: { x: 200, y: 300 },
+  },
+  {
+    id: "end",
+    type: "end",
+    data: { label: "End" },
+    position: { x: 500, y: 300 },
+  },
+];
+export const nodes = writable<Node[]>(initialNodes);
 export const edges = writable<Edge[]>([]);
 
 export function clearCanvas() {
-  nodes.set([]);
+  nodes.set(initialNodes);
   edges.set([]);
   updateContextMenu({ show: false });
-  flowEditing.set({type:FlowType.DEFAULT,ID:"",NAME:""})
+  flowEditing.set({ type: FlowType.DEFAULT, ID: "", NAME: "" });
+  flowRunning.set(defaultFlowRunningParams)
 }
 export function resetUtilsEditing() {
   utilsEditing.set({ openEditDialog: false });
@@ -112,16 +153,20 @@ export async function addFlow(flow: FLOW) {
   ]);
   return flow;
 }
-export async function saveFlow(params: Flow,clear=true) {
-  const flow = await addFlow({ ID: params.ID, NAME: params.NAME });
-  const nodes = await addNodes(flow, params.nodes);
-  const edges = await addEdges(flow, params.edges);
-  flows.update((vals) => ({
-    ...vals,
-    [flow.ID]: { ...flow, nodes, edges },
-  }));
-  if(clear){
-    clearCanvas();
+export async function saveFlow(params: Flow, clear = true) {
+  try {
+    const flow = await addFlow({ ID: params.ID, NAME: params.NAME });
+    const nodes = await addNodes(flow, params.nodes);
+    const edges = await addEdges(flow, params.edges);
+    flows.update((vals) => ({
+      ...vals,
+      [flow.ID]: { ...flow, nodes, edges },
+    }));
+    if (clear) {
+      clearCanvas();
+    }
+  } catch (error) {
+    console.log(error);
   }
 }
 export function deleteNode(id: string) {
@@ -186,18 +231,26 @@ export async function initFlows() {
   const _flows = await getFlows();
   flows.set(_flows);
 }
-
-export async function editFlow(flow:FLOW) {
-  flows.subscribe((vals)=>{
-    flowEditing.set({...flow,type:FlowType.EDIT})    
-    nodes.set(vals[flow.ID].nodes);
-    edges.set(vals[flow.ID].edges);
-  })()
+export async function initUsers() {
+  const _flows = await getUsers();
+  const passes: Users = {};
+  _flows.forEach((pass) => {
+    passes[pass.ID] = pass;
+  });
+  users.set(passes);
 }
-export async function runFlow(flow:FLOW) {
-  flows.subscribe((vals)=>{
-    flowEditing.set({...flow,type:FlowType.RUN})    
+
+export async function editFlow(flow: FLOW) {
+  flows.subscribe((vals) => {
+    flowEditing.set({ ...flow, type: FlowType.EDIT });
     nodes.set(vals[flow.ID].nodes);
     edges.set(vals[flow.ID].edges);
-  })()
+  })();
+}
+export async function runFlow(flow: FLOW) {
+  flows.subscribe((vals) => {
+    flowEditing.set({ ...flow, type: FlowType.RUN });
+    nodes.set(vals[flow.ID].nodes);
+    edges.set(vals[flow.ID].edges);
+  })();
 }

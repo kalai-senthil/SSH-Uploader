@@ -4,6 +4,7 @@
   import FlowIcon from "lucide-svelte/icons/tangent";
   import Terminal from "lucide-svelte/icons/square-terminal";
   import Network from "lucide-svelte/icons/network";
+  import Users from "lucide-svelte/icons/user-pen";
   import Folder from "lucide-svelte/icons/folder-open";
   import Password from "lucide-svelte/icons/key-round";
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
@@ -27,6 +28,11 @@
       },
     ],
     Management: [
+      {
+        url: "/users",
+        icon: Users,
+        name: "Users",
+      },
       {
         url: "/ips",
         icon: Monitor,

@@ -18,12 +18,14 @@
     selectedValue: any;
     disabled?: any;
     type: "single" | "multiple";
+    description?:string
   };
   let {
     data,
     searchLabel = "Search",
     selectedValue = $bindable(),
     disabled = $bindable(),
+    description,
     type = "single",
   }: Props = $props();
 
@@ -58,7 +60,7 @@
         aria-expanded={open}
       >
         <span>
-          {type === "single" ? value || searchLabel : searchLabel}
+          {type === "single" ? ((value && `${value} ${description||""}`) || searchLabel) : searchLabel}
         </span>
         <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
       </Button>
@@ -72,6 +74,7 @@
         <Command.Group>
           {#each data as row}
             <Command.Item
+            {disabled}
               value={row.value}
               onSelect={() => {
                 const _value = row.value;

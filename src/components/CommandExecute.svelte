@@ -3,7 +3,7 @@
   import Execute from "lucide-svelte/icons/terminal";
   import PageTitle from "./PageTitle.svelte";
   import Input from "$lib/components/ui/input/input.svelte";
-  import { commands, ips, passwords, paths } from "$lib/store";
+  import { commands, ips, passwords, paths, users } from "$lib/store";
   import Label from "$lib/components/ui/label/label.svelte";
   import { Button } from "$lib/components/ui/button";
   import SelectWithSearch from "./SelectWithSearch.svelte";
@@ -35,6 +35,7 @@
     }
   });
   const ipsData = $derived(Object.values($ips));
+  const usersData = $derived(Object.values($users));
   const commandsData = $derived(Object.values($commands));
   function clear() {
     uploadData.user = "";
@@ -55,7 +56,7 @@
       type="single"
       bind:selectedValue={uploadData.user}
       searchLabel="Search User"
-      data={[{ label: "sas", value: "sas" }]}
+      data={usersData.map(user=>({label:user.NAME,value:user.ID}))}
     />
     <SelectWithSearch
       type="multiple"
@@ -143,8 +144,9 @@
                 password: $ips[ip].PASSWORD,
               })),
               args: uploadData.args,
-            });
+            });            
             clear();
+            alert(res)
             loading = false;
           }
         }}

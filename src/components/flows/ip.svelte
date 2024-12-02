@@ -48,8 +48,10 @@
     {#each value as ip}
       <Button
         onclick={() => {
-          value.splice(value.indexOf(ip), 1);
-          value = value;
+          if(!isRunMode){
+            value.splice(value.indexOf(ip), 1);
+            value = value;
+          }
         }}
         variant="link"
         class="after:content-[','] last:after:content-[''] after:-ml-2 text-sm m-0 p-0 font-bold"

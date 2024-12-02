@@ -28,7 +28,7 @@
   $: nodesDataFormatted = $nodesData
     .filter((node) => ["args", "command"].includes(node?.type as string))
     .sort((a, b) => (a.type === "command" ? -1 : 1));
-  $: value = `${$commands[nodesDataFormatted[0].data.command as string]?.COMMAND} ${nodesDataFormatted[1].data.args}`
+  $: value = nodesDataFormatted.length  !== 0 ? `${$commands[nodesDataFormatted[0].data.command as string]?.COMMAND} ${nodesDataFormatted[1]? nodesDataFormatted[1].data.args:""}`:""
   $: updateNodeData(id,{command:value})
 </script>
 
@@ -37,10 +37,10 @@
     <Cpu class="size-4" />
     <Label>Execute</Label>
   </div>
-  {#if nodesDataFormatted}
+  {#if nodesDataFormatted.length !==0}
     <Label
       >{$commands[nodesDataFormatted[0].data.command as string]?.COMMAND}</Label
     >
-    <Label>{nodesDataFormatted[1].data.args}</Label>
+    <Label>{nodesDataFormatted[1]?.data.args}</Label>
   {/if}
 </NodeWrapper>

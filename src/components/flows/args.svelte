@@ -21,7 +21,7 @@
   $: isRunMode = $flowEditing.type === FlowType.RUN;
 </script>
 
-<NodeWrapper leftHandle={false} nodeId={id}>
+<NodeWrapper className="w-fit" leftHandle={false} nodeId={id}>
   <div class="flex items-center my-2 justify-start gap-1">
     <Braces class="size-4" />
     <Label>Args</Label>

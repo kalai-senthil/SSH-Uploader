@@ -12,6 +12,7 @@ import type {
   NODE,
   PASSWORD,
   PATH,
+  USER,
 } from "$lib/typings";
 import { v4 as uuid } from "uuid";
 import {
@@ -23,6 +24,7 @@ import {
   passwords,
   paths,
   saveFlow,
+  users,
   utilsEditing,
 } from "$lib/store";
 import { MarkerType } from "@xyflow/svelte";
@@ -34,7 +36,7 @@ async function getIPS() {
   );
   return results as IP[];
 }
-async function getFlow(id: string) {
+export async function getFlow(id: string) {
   const db = await getDB();
   const nodes: any[] = await db.select(
     "SELECT * FROM NODES WHERE FLOWID = $1;",
@@ -74,6 +76,12 @@ async function getCommands() {
 
   return results as COMMAND[];
 }
+export async function getCommand(id:string) {
+  const db = await getDB();
+  const results = await db.select("SELECT * from COMMANDS WHERE ID = $1;",[id]);
+
+  return (results as COMMAND[])[0];
+}
 async function getPaths() {
   const db = await getDB();
   const results = await db.select("SELECT * from PATHS;");
@@ -85,6 +93,12 @@ async function getPasswords() {
   const results = await db.select("SELECT * from PASSWORDS;");
 
   return results as PASSWORD[];
+}
+async function getUsers() {
+  const db = await getDB();
+  const results = await db.select("SELECT * from USERS;");
+
+  return results as USER[];
 }
 async function addPath(name: string, path: string) {
   try {
@@ -104,6 +118,26 @@ async function addPath(name: string, path: string) {
       },
     }));
     return { success: true, data: { id: ipID, name, ip: path } };
+  } catch (error) {
+    return { success: false, data: null };
+  }
+}
+async function addUser(name: string) {
+  try {
+    const db = await getDB();
+    const ipID = uuid();
+    await db.execute("INSERT INTO USERS (ID,NAME) VALUES ($1,$2);", [
+      ipID,
+      name,
+    ]);
+    users.update((val) => ({
+      ...val,
+      [ipID]: {
+        ID: ipID,
+        NAME: name,
+      },
+    }));
+    return { success: true, data: { id: ipID, name } };
   } catch (error) {
     return { success: false, data: null };
   }
@@ -195,6 +229,19 @@ async function editCommand(command: COMMAND) {
     return { success: false };
   }
 }
+async function editUser(path:USER) {
+  try {
+    const db = await getDB();
+    await db.execute("UPDATE USERS SET NAME = $1 WHERE ID = $2;", [
+      path.NAME,
+      path.ID,
+    ]);
+    users.update((vals) => ({ ...vals, [path.ID]: path }));
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
 async function editPath(path: PATH) {
   try {
     const db = await getDB();
@@ -245,6 +292,20 @@ async function deleteIP(id: string) {
     const db = await getDB();
     await db.execute("DELETE FROM IPS WHERE ID = $1;", [id]);
     ips.update((ips) => {
+      delete ips[id];
+      return ips;
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
+async function deleteUser(id: string) {
+  try {
+    const db = await getDB();
+    await db.execute("DELETE FROM USERS WHERE ID = $1;", [id]);
+    users.update((ips) => {
       delete ips[id];
       return ips;
     });
@@ -329,6 +390,7 @@ export {
   copyFlow,
   deleteIP,
   deleteFlow,
+  editUser,
   editFlow,
   addPassword,
   editCommand,
@@ -341,7 +403,9 @@ export {
   deleteCommand,
   getPaths,
   addPath,
-  deletePath,
+  deletePath,addUser,
   editIP,
   getPasswords,
+  deleteUser,
+  getUsers
 };

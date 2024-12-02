@@ -6,7 +6,7 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import { open } from "@tauri-apps/plugin-dialog";
   import * as Select from "$lib/components/ui/select";
-  import { ips, passwords, paths } from "$lib/store";
+  import { ips, passwords, paths, users } from "$lib/store";
   import Label from "$lib/components/ui/label/label.svelte";
   import Checkbox from "$lib/components/ui/checkbox/checkbox.svelte";
   import { Button, buttonVariants } from "$lib/components/ui/button";
@@ -59,6 +59,7 @@
     }
   });
   const ipsData = $derived(Object.values($ips));
+  const usersData = $derived(Object.values($users));
   const ipsIds = $derived(Object.keys($ips));
   const pathsData = $derived(Object.values($paths));
   const pathsIds = $derived(Object.keys($paths));
@@ -108,7 +109,7 @@
       type="single"
       bind:selectedValue={uploadData.user}
       searchLabel="Search User"
-      data={[{ label: "sas", value: "sas" }]}
+      data={usersData.map(user=>({label:user.NAME,value:user.ID}))}
     />
     <SelectWithSearch
       type="multiple"

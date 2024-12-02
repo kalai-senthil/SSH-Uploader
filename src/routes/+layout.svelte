@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-  import { initCommands, initFlows, initIPS, initPasswords, initPaths } from "$lib/store";
+  import { initCommands, initFlows, initIPS, initPasswords, initPaths, initUsers } from "$lib/store";
   import Navbar from "../components/Navbar.svelte";
   import "../css/main.css";
   import '@xyflow/svelte/dist/style.css';
@@ -9,6 +9,7 @@
   initPaths();
   initPasswords();
   initFlows();
+  initUsers();
 </script>
 
 <Sidebar.Provider>

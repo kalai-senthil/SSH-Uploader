@@ -7,7 +7,7 @@
     flowEditing,
     updateContextMenu,
   } from "$lib/store";
-  import { FlowType } from "$lib/typings";
+  import { FlowType, NodeType } from "$lib/typings";
   import { flyAndScale } from "$lib/utils";
   import { fly } from "svelte/transition";
   const position = $derived($contextMenuDetails.position);
@@ -30,28 +30,28 @@
     <Label class="p-2 text-sm text-muted-foreground">Add</Label>
     <Button
       onclick={() => {
-        addNode({ type: "delay", data: { unit: "ms", time: 100 } });
+        addNode({ type:NodeType.DELAY, data: { unit: "ms", time: 100 } });
       }}
       class="w-full rounded-none justify-start"
       variant="ghost">Delay</Button
     >
     <Button
       onclick={() => {
-        addNode({ type: "command", data: {} });
+        addNode({ type:NodeType.COMMAND, data: {} });
       }}
       class="w-full rounded-none justify-start"
       variant="ghost">Command</Button
     >
     <Button
       onclick={() => {
-        addNode({ type: "ip", data: { ips: [] } });
+        addNode({ type:NodeType.IP, data: { ips: [] } });
       }}
       class="w-full rounded-none justify-start"
       variant="ghost">IP</Button
     >
     <Button
       onclick={() => {
-        addNode({ type: "args", data: { args: "" } });
+        addNode({ type:NodeType.ARGS, data: { args: "" } });
       }}
       class="w-full rounded-none justify-start"
       variant="ghost">Args</Button
@@ -59,7 +59,7 @@
 
     <Button
       onclick={() => {
-        addNode({ type: "execute", data: {} });
+        addNode({ type: NodeType.EXECUTE, data: {} });
       }}
       class="w-full rounded-none justify-start"
       variant="ghost">Execute</Button

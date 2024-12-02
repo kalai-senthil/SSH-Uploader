@@ -45,5 +45,5 @@
       />
     </SlideWrapper>
   {/if}
-  <Label class="text-sm font-bold">{$commands[value].COMMAND}</Label>
+  <Label class="text-sm font-bold"> {value&& $commands[value].COMMAND}</Label>
 </NodeWrapper>

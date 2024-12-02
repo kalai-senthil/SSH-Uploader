@@ -8,6 +8,7 @@ export enum Utils {
   COMMAND = "Command",
   PATH = "Path",
   PASSWORD = "Password",
+  USER="User",
 }
 export type UtilsEditing = {
   data?: any;
@@ -63,8 +64,20 @@ export type IP = {
   IP: string;
   PASSWORD: string;
 };
+export type USER = {
+  ID: string;
+  NAME: string;
+};
 
-export type NodeType = "delay" | "command" | "ip" | "args" | "execute";
+export enum NodeType{
+  DELAY="delay",
+  COMMAND="command",
+  IP='ip',
+  ARGS='args',
+  EXECUTE='execute',
+  START='Start',
+  END='End'
+} 
 export interface AddNodeParams {
   type: NodeType;
   data: _Object<any>;
@@ -76,6 +89,7 @@ export type PASSWORD = {
 };
 export type Passwords = _Object<PASSWORD>;
 export type IPs = _Object<IP>;
+export type Users = _Object<USER>;
 export type Commands = _Object<COMMAND>;
 export type Paths = _Object<PATH>;
 export type COMMAND = {

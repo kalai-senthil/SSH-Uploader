@@ -85,6 +85,36 @@
   top: -10px;
 }
 
+.turbo-style {
+  position: relative;
+  background: linear-gradient(90deg, #ff3d00, #ffdd00, #00e676, #2979ff, #d500f9);
+  background-size: 300% 300%;
+  animation: gradient-animation 2s ease infinite;
+  overflow: hidden;
+}
+
+.turbo-style::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  background: linear-gradient(90deg, #ff3d00, #ffdd00, #00e676, #2979ff, #d500f9);
+  background-size: 300% 300%;
+  animation: gradient-animation 2s infinite;
+  filter: blur(15px);
+}
+
+@keyframes gradient-animation {
+  0% {
+      background-position: 0% 50%;
+  }
+  50% {
+      background-position: 100% 50%;
+  }
+  100% {
+      background-position: 0% 50%;
+  }
+}
 .w-panel {
   width: calc(100vw - 16rem);
 }

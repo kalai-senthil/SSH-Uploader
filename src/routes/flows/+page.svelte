@@ -16,10 +16,12 @@
 <section class="p-4">
   <section class="flex my-4 justify-between items-center">
     <PageTitle title="Flows" />
-    <Button variant="outline"
-      ><AddIcon />
-      <a href="/flow">Create Flow</a>
-    </Button>
+    <a href="/flow">
+      <Button variant="outline"
+        ><AddIcon />
+        Create Flow
+      </Button>
+    </a>
   </section>
   <FlowList />
 </section>
