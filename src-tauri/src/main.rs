@@ -4,7 +4,7 @@ use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;
-use std::{fmt::format, fs};
+use std::fs;
 use tauri_plugin_sql::{Migration, MigrationKind};
 #[derive(Deserialize, Debug)]
 struct Machine {
