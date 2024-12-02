@@ -6,7 +6,15 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import { open } from "@tauri-apps/plugin-dialog";
   import * as Select from "$lib/components/ui/select";
-  import { ips, passwords, paths, users } from "$lib/store";
+  import {
+    ips,
+    passwords,
+    paths,
+    results,
+    updateResults,
+    users,
+    type Result,
+  } from "$lib/store";
   import Label from "$lib/components/ui/label/label.svelte";
   import Checkbox from "$lib/components/ui/checkbox/checkbox.svelte";
   import { Button, buttonVariants } from "$lib/components/ui/button";
@@ -14,7 +22,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { path } from "@tauri-apps/api";
   import Textarea from "$lib/components/ui/textarea/textarea.svelte";
-  import { cn } from "$lib/utils";
+  import { cn, flyAndScale } from "$lib/utils";
   import { ScrollArea } from "bits-ui";
   import { addIP, addPassword } from "$lib/db";
   let uploadDirectory = $state(false);
@@ -45,11 +53,14 @@
     filePath: undefined as null | string | undefined,
     remoteFilePath: "",
     user: "",
-    customPath:""
+    customPath: "",
   });
   import * as HoverCard from "$lib/components/ui/hover-card";
   import { fade } from "svelte/transition";
   import { tick } from "svelte";
+  import Loading from "./Loading.svelte";
+  import Results from "./Results.svelte";
+  import Clear from "./Clear.svelte";
   let textAreaElement = $state<string>("");
   let fileSelected = $derived(uploadData.filePath !== undefined);
   $effect(() => {
@@ -58,6 +69,18 @@
       ipstoUpload = [];
     }
   });
+  function focusOutCustomPath() {
+    if (
+      uploadData.customPath &&
+      (uploadData.customPath[uploadData.customPath.length - 1] === "/" ||
+        uploadData.customPath[uploadData.customPath.length - 1] === "\\")
+    ) {
+      uploadData.customPath = uploadData.customPath.substring(
+        0,
+        uploadData.customPath.length - 1
+      );
+    }
+  }
   const ipsData = $derived(Object.values($ips));
   const usersData = $derived(Object.values($users));
   const ipsIds = $derived(Object.keys($ips));
@@ -70,14 +93,15 @@
       filePath: undefined as null | string | undefined,
       remoteFilePath: "",
       user: "",
-      customPath:""
+      customPath: "",
     };
-    ipstoUpload = []
-    pathsToUpload = ""
+    ipstoUpload = [];
+    pathsToUpload = "";
   }
+  let loading = $state(false);
 </script>
 
-<section class="col-span-4">
+<section class="col-span-12 lg:col-span-4">
   <PageTitle title="Upload" delay={100} classNames="text-md" />
   <section class="border flex flex-col gap-2 rounded-md p-2">
     <div class="flex items-center gap-2 justify-between">
@@ -109,7 +133,7 @@
       type="single"
       bind:selectedValue={uploadData.user}
       searchLabel="Search User"
-      data={usersData.map(user=>({label:user.NAME,value:user.ID}))}
+      data={usersData.map((user) => ({ label: user.NAME, value: user.ID }))}
     />
     <SelectWithSearch
       type="multiple"
@@ -151,7 +175,7 @@
                 const [ip, pass] = textAreaElement.split(",");
                 const { success, data: password } = await addPassword(
                   pass,
-                  pass,
+                  pass
                 );
                 const resp = await addIP(ip, ip, password!.id);
                 if (resp.data) {
@@ -206,16 +230,14 @@
       type="single"
     >
       <Select.Trigger
-        >{
-           pathsToUpload?pathsToUpload
-          : "Choose Path"}</Select.Trigger
+        >{pathsToUpload ? pathsToUpload : "Choose Path"}</Select.Trigger
       >
       <Select.Content>
         {#each pathsData as path (path.ID)}
           <Select.Item
             onclick={() => {
               if (showCustomInputPath) {
-                pathsToUpload = path.PATH
+                pathsToUpload = path.PATH;
               }
             }}
             value={path.PATH}>{path.PATH}</Select.Item
@@ -227,7 +249,11 @@
         >
       </Select.Content>
       {#if showCustomInputPath}
-        <Input bind:value={uploadData.customPath} placeholder="Give custom path" />
+        <Input
+          onfocusout={focusOutCustomPath}
+          bind:value={uploadData.customPath}
+          placeholder="Give custom path"
+        />
       {/if}
     </Select.Root>
     <Label>Name</Label>
@@ -254,25 +280,50 @@
         Same as file name
       </Button>
     </div>
-    <Button
-      onclick={async () => {
-        const res = await invoke("upload_file", {
-          localFilePath: uploadData.filePath,
-          remoteUser: uploadData.user,
-          remotePath: showCustomInputPath? uploadData.customPath:pathsToUpload,
-          port: 22,
-          remoteHosts: ipstoUpload.map((ip) => ({
-            ip: $ips[ip].IP,
-            password: $ips[ip].PASSWORD,
-          })),
-          remoteFileName: uploadData.fileName,
-        });
-        console.log(res);
-        
-        clear();
-      }}
-      class="w-full"
-      variant="secondary"><UploadIcon /> Upload</Button
-    >
+    <div class="flex gap-2 items-center">
+      <Button
+        onclick={async () => {
+          if (
+            uploadData.filePath &&
+            uploadData.user &&
+            ipstoUpload.length > 0
+          ) {
+            loading = true;
+            const res = await invoke("upload_file", {
+              localFilePath: uploadData.filePath,
+              remoteUser: $users[uploadData.user].NAME,
+              remotePath: showCustomInputPath
+                ? uploadData.customPath
+                : pathsToUpload,
+              port: 22,
+              remoteHosts: ipstoUpload.map((ip) => ({
+                ip: $ips[ip].IP,
+                password: $ips[ip].PASSWORD,
+              })),
+              remoteFileName: uploadData.fileName,
+            });
+            loading = false;
+            results.update((val) => ({ ...val, upload: res as Result[] }));
+            clear();
+          }
+        }}
+        class="w-full bg-violet-500"
+        variant="secondary"
+      >
+        {#if loading}
+          <Loading />
+        {/if}
+        <UploadIcon /> Upload</Button
+      >
+      {#if ipstoUpload.length > 0 || uploadData.customPath || uploadData.fileName || uploadData.remoteFilePath || uploadData.user || uploadData.filePath}
+        <Clear {clear} />
+      {/if}
+      {#if $results["upload"]}
+        <Results
+          clear={() => updateResults("upload")}
+          results={$results["upload"]}
+        />
+      {/if}
+    </div>
   </section>
 </section>

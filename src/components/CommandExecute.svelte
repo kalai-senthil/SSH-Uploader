@@ -3,7 +3,16 @@
   import Execute from "lucide-svelte/icons/terminal";
   import PageTitle from "./PageTitle.svelte";
   import Input from "$lib/components/ui/input/input.svelte";
-  import { commands, ips, passwords, paths, users } from "$lib/store";
+  import {
+    commands,
+    ips,
+    passwords,
+    paths,
+    results,
+    updateResults,
+    users,
+    type Result,
+  } from "$lib/store";
   import Label from "$lib/components/ui/label/label.svelte";
   import { Button } from "$lib/components/ui/button";
   import SelectWithSearch from "./SelectWithSearch.svelte";
@@ -26,6 +35,8 @@
   import { fade } from "svelte/transition";
   import { tick } from "svelte";
   import Loading from "./Loading.svelte";
+  import Clear from "./Clear.svelte";
+  import Results from "./Results.svelte";
   let textAreaElement = $state<string>("");
   let loading = $state<boolean>(false);
   $effect(() => {
@@ -49,14 +60,14 @@
   }
 </script>
 
-<section class="col-span-3">
+<section class="col-span-12 lg:col-span-3">
   <PageTitle title="Execute" delay={100} classNames="text-md" />
   <section class="border flex flex-col gap-2 rounded-md p-2">
     <SelectWithSearch
       type="single"
       bind:selectedValue={uploadData.user}
       searchLabel="Search User"
-      data={usersData.map(user=>({label:user.NAME,value:user.ID}))}
+      data={usersData.map((user) => ({ label: user.NAME, value: user.ID }))}
     />
     <SelectWithSearch
       type="multiple"
@@ -144,9 +155,10 @@
                 password: $ips[ip].PASSWORD,
               })),
               args: uploadData.args,
-            });            
+            });
             clear();
-            alert(res)
+            results.update((val) => ({ ...val, command: res as Result[] }));
+            alert(res);
             loading = false;
           }
         }}
@@ -159,7 +171,12 @@
         <Execute />
         Execute</Button
       >
-      <Button onclick={clear} variant="outline">Clear</Button>
+      {#if ipstoUpload.length > 0 || uploadData.args || uploadData.command || uploadData.user}
+        <Clear {clear} />
+      {/if}
+      {#if $results["command"]}
+        <Results clear={()=>updateResults("command")} results={$results["command"]} />
+      {/if}
     </div>
   </section>
 </section>

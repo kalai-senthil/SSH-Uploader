@@ -22,7 +22,7 @@ fn is_directory(path: &str) -> bool {
 
     match fs::metadata(path) {
         Ok(metadata) => metadata.is_dir(),
-        Err(e) => false,
+        Err(_e) => false,
     }
 }
 
@@ -50,8 +50,8 @@ async fn upload_file(
     remote_path: String,
     remote_file_name: String,
     port: u16,
-) -> Vec<String> {
-    let mut results = Vec::new();
+) -> Vec<Result> {
+    let mut results = Vec::<Result>::new();
     for remote_host in remote_hosts {
         let destination = format!(
             "{}@{}:{}/{}",
@@ -59,7 +59,7 @@ async fn upload_file(
         );
         let output_file = get_random_string(10);
         let command = format!(
-            "sshpass -p {} scp -o StrictHostKeyChecking=no -P {} {} {} {} > /tmp/{}.txt",
+            "sshpass -p '{}' scp -o StrictHostKeyChecking=no -P {} {} {} {} > /tmp/{}.txt",
             remote_host.password,
             port,
             get_args(is_directory(&local_file_path)),
@@ -68,7 +68,7 @@ async fn upload_file(
             output_file
         );
         let mut result = Result {
-            command: command.clone(),
+            command: format!("{} -> {}/{}",local_file_path,remote_path,remote_file_name),
             result: String::from(""),
         };
         let output = Command::new("sh").args(&["-c", &command]).output();
@@ -77,17 +77,18 @@ async fn upload_file(
                 if output.status.success() {
                     match fs::read_to_string(format!("/tmp/{}.txt", output_file)) {
                         Ok(content) => result.result = content,
-                        Err(error) => {
+                        Err(_error) => {
                             result.result = String::from_utf8_lossy(&output.stdout).to_string()
                         }
                     }
                 } else {
                     let stderr = String::from_utf8_lossy(&output.stderr);
-                    results.push(format!("Error: {}", stderr));
+                    result.result = format!("Error: {}", stderr);
                 }
-            }
-            Err(e) => results.push(format!("Failed to execute '{}': {}", command, e)),
+            }   
+            Err(e) => result.result = format!("Failed to execute '{}': {}", command, e),
         }
+        results.push(result);
     }
     results
 }
@@ -119,7 +120,7 @@ async fn execute_command(
                         Ok(content) => {
                             result.result = content
                         },
-                        Err(error) => {
+                        Err(_error) => {
                             result.result = String::from_utf8_lossy(&output.stderr).to_string()
                         }
                     }
@@ -142,8 +143,11 @@ async fn download(
     remote_path: String,
     local_dir: String,
     local_file_name: String,
-) -> String {
-    let mut result = String::new();
+) -> Result {
+    let mut result = Result{
+        command:format!("{}/{} <- {}",remote_path,local_dir,local_file_name),
+        result:String::from("")
+    };
     let output_file = get_random_string(10);
     let command = format!(
         "sshpass -p '{}' scp -o StrictHostKeyChecking=no -P {} {} {}@{}:{} {}/{} > /tmp/{}.txt",
@@ -162,15 +166,15 @@ async fn download(
         Ok(output) => {
             if output.status.success() {
                 match fs::read_to_string(format!("/tmp/{}.txt", output_file)) {
-                    Ok(content) => result = content,
-                    Err(error) => result = String::from_utf8_lossy(&output.stdout).to_string(),
+                    Ok(content) => result.result = content,
+                    Err(_error) => result.result = String::from_utf8_lossy(&output.stdout).to_string(),
                 }
             } else {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                result = format!("Error: {}", stderr);
+                result.result = format!("Error: {}", stderr);
             }
         }
-        Err(e) => result = format!("Failed to execute '{}': {}", command, e),
+        Err(e) => result.result = format!("Failed to execute '{}': {}", command, e),
     }
     result
 }

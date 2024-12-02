@@ -6,7 +6,15 @@
   import Input from "$lib/components/ui/input/input.svelte";
   import { open } from "@tauri-apps/plugin-dialog";
   import * as Select from "$lib/components/ui/select";
-  import { ips, passwords, paths, users } from "$lib/store";
+  import {
+    ips,
+    passwords,
+    paths,
+    results,
+    updateResults,
+    users,
+    type Result,
+  } from "$lib/store";
   import Label from "$lib/components/ui/label/label.svelte";
   import Checkbox from "$lib/components/ui/checkbox/checkbox.svelte";
   import { Button } from "$lib/components/ui/button";
@@ -49,6 +57,8 @@
   import * as HoverCard from "$lib/components/ui/hover-card";
   import { fade } from "svelte/transition";
   import { tick } from "svelte";
+  import Clear from "./Clear.svelte";
+  import Results from "./Results.svelte";
   const ipsData = $derived(Object.values($ips));
   const usersData = $derived(Object.values($users));
   const pathsData = $derived(Object.values($paths));
@@ -75,7 +85,7 @@
   }
 </script>
 
-<section class="col-span-3">
+<section class="col-span-12 lg:col-span-3">
   <PageTitle title="Download" delay={100} classNames="text-md" />
   <section class="border flex flex-col gap-2 rounded-md p-2">
     <SelectWithSearch
@@ -225,13 +235,19 @@
               password: $ips[ipstoUpload].PASSWORD,
             },
           });
-          console.log(res);
+          results.update((val) => ({ ...val, downlaod: res as Result[] }));
+
           clear();
         }}
         class="w-full bg-violet-500 grow"
         variant="secondary"><Download /> Download</Button
       >
-      <Button onclick={clear} variant="outline">Clear</Button>
+      {#if ipstoUpload.length > 0 || pathsToUpload || uploadData.fileName || uploadData.customLocalPath || uploadData.localDir || uploadData.user || uploadData.customPath}
+        <Clear {clear} />
+      {/if}
+      {#if $results["download"]}
+        <Results clear={()=>updateResults("download")} results={$results["download"]} />
+      {/if}
     </div>
   </section>
 </section>

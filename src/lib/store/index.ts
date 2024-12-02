@@ -10,9 +10,9 @@ import {
 import { v4 as uuid } from "uuid";
 import {
   FlowType,
+  Utils,
   type _Object,
   type AddNodeParams,
-  type COMMAND,
   type Commands,
   type EDGE,
   type FLOW,
@@ -21,7 +21,6 @@ import {
   type IP,
   type IPs,
   type NODE,
-  type PASSWORD,
   type Passwords,
   type PATH,
   type Paths,
@@ -47,15 +46,15 @@ export const nodesSelected = writable<string | undefined>(undefined);
 export function updateContextMenu(params: {}) {
   contextMenuDetails.update((val) => ({ ...val, ...params }));
 }
-export type Result={
-  command:string,
-  result:string
-}
+export type Result = {
+  command: string;
+  result: string;
+};
 const defaultFlowRunningParams = {
   runningNode: "",
   running: false,
   timeout: 1,
-  results:[] as Result[]
+  results: [] as Result[],
 };
 export const flowRunning = writable(defaultFlowRunningParams);
 export const flowEditing = writable<FLOW & { type: FlowType }>({
@@ -71,6 +70,14 @@ export function updateRunningFlow(data: any, clear = false) {
   }
   flowRunning.update((val) => ({ ...val, ...data }));
 }
+
+export function updateResults(type:string) {
+  results.update((val)=>{
+    delete val[type]
+    return {...val}
+  })
+}
+export const results = writable<_Object<Result[]>>({});
 const initialNodes = [
   {
     id: "start",
@@ -93,7 +100,7 @@ export function clearCanvas() {
   edges.set([]);
   updateContextMenu({ show: false });
   flowEditing.set({ type: FlowType.DEFAULT, ID: "", NAME: "" });
-  flowRunning.set(defaultFlowRunningParams)
+  flowRunning.set(defaultFlowRunningParams);
 }
 export function resetUtilsEditing() {
   utilsEditing.set({ openEditDialog: false });
