@@ -104,7 +104,7 @@ async fn execute_command(
     let output_file = get_random_string(10);
     for remote_host in remote_hosts {
         let execute_command = format!(
-            "sshpass -p '{}' ssh -o StrictHostKeyChecking=no {}@{} {} {} > /tmp/{}.txt",
+            "sshpass -p '{}' ssh -o StrictHostKeyChecking=no {}@{} '{} {}' > /tmp/{}.txt",
             remote_host.password, remote_user, remote_host.ip, command, args, output_file
         );
         let mut result = Result {
@@ -116,7 +116,9 @@ async fn execute_command(
             Ok(output) => {
                 if output.status.success() {
                     match fs::read_to_string(format!("/tmp/{}.txt", output_file)) {
-                        Ok(content) => result.result = content,
+                        Ok(content) => {
+                            result.result = content
+                        },
                         Err(error) => {
                             result.result = String::from_utf8_lossy(&output.stderr).to_string()
                         }
